@@ -1,0 +1,56 @@
+/* components/header/header.wxss */
+.header-container {
+  width: 100%;
+  background-color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  padding: 0 30rpx;
+  position: relative;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  margin-right: 15rpx;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+}
+
+.back-arrow {
+  width: 20rpx;
+  height: 20rpx;
+  border-left: 4rpx solid #333;
+  border-bottom: 4rpx solid #333;
+  transform: rotate(45deg);
+  margin-left: 5rpx;
+}
+
+.logo-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin-right: 15rpx;
+}
+
+.logo-image {
+  height: 30px;
+  width: 30px;
+}
+
+.welcome-text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+} 

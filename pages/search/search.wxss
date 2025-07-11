@@ -1,0 +1,156 @@
+/* search.wxss */
+.container {
+  padding: 0;
+  background-color: #f8f8f8;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 搜索框样式 */
+.search-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+	width: 90%;
+  margin: 0 auto; /* 添加居中对齐 */
+  margin-bottom: 5px; /* 减少与下方内容的间距 */
+  border-radius: 8px; /* 添加圆角 */
+}
+
+.search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  padding: 8px 15px;
+  margin-right: 10px;
+}
+
+.search-input {
+  flex: 1;
+  height: 20px;
+  margin: 0 10px;
+  font-size: 14px;
+}
+
+.search-btn {
+  color: #1296db;
+  font-size: 14px;
+  padding: 0 5px;
+}
+
+/* 搜索结果样式 */
+.search-results {
+  padding: 10px 15px;
+  margin-top: 5px; /* 添加与搜索框的间距 */
+  width: 90%;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.result-category {
+  margin: 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.category-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.result-item {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.result-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.result-desc {
+  font-size: 12px;
+  color: #999;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 历史搜索和热门搜索样式 */
+.search-content {
+  padding: 10px 15px;
+  margin-top: 5px;
+  width: 90%;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.search-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.clear-history {
+  font-size: 12px;
+  color: #999;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tag-item {
+  background-color: #f5f5f5;
+  padding: 6px 12px;
+  border-radius: 15px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* 无结果样式 */
+.no-results {
+  text-align: center;
+  padding: 20px 0;
+  color: #999;
+  font-size: 14px;
+}

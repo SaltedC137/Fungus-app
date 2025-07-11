@@ -1,0 +1,48 @@
+<!--notification.wxml-->
+<header showBack="{{true}}"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <!-- 顶部标签栏 -->
+  <view class="tab-container" style="top: {{navBarHeight}}px;">
+    <view class="tab-bar">
+      <view class="tab-item {{currentTab === index ? 'active' : ''}}" 
+            wx:for="{{tabList}}" 
+            wx:key="index" 
+            data-index="{{index}}" 
+            bindtap="switchTab">
+        {{item}}
+      </view>
+    </view>
+    <!-- 添加全部已读按钮 -->
+    <view class="{{hasUnread ? 'mark-all-read' : 'mark-all-btn-read'}}" bindtap="markAllAsRead">
+      <text>全部已读</text>
+    </view>
+  </view>
+  
+  <view class="container">
+    <!-- 通知列表 -->
+    <view class="notification-list">
+      <block wx:if="{{filteredList.length > 0}}">
+        <view class="notification-item {{item.isRead ? 'read' : ''}}" 
+              wx:for="{{filteredList}}" 
+              wx:key="id">
+          <view class="notification-content" bindtap="viewDetail" data-id="{{item.id}}">
+            <view class="notification-type {{item.type}}">{{item.type === 'system' ? '系统' : '活动'}}</view>
+            <view class="notification-info">
+              <view class="notification-title">{{item.title}}</view>
+              <view class="notification-desc">{{item.content}}</view>
+              <view class="notification-time">{{item.time}}</view>
+            </view>
+          </view>
+          <view class="notification-actions">
+            <view class="action-btn" wx:if="{{!item.isRead}}" bindtap="markAsRead" data-id="{{item.id}}">标为已读</view>
+          </view>
+        </view>
+      </block>
+      <view wx:else class="empty-list">
+        <view class="empty-icon"></view>
+        <view class="empty-text">暂无通知</view>
+      </view>
+    </view>
+  </view>
+</view> 

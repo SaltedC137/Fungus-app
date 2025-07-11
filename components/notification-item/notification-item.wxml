@@ -1,0 +1,40 @@
+<!--notification.wxml-->
+<header showBack="{{true}}"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <!-- 顶部标签栏 -->
+  <view class="tab-container" style="top: {{navBarHeight}}px;">
+    <view class="tab-bar">
+      <view class="tab-item {{currentTab === index ? 'active' : ''}}" 
+            wx:for="{{tabList}}" 
+            wx:key="index" 
+            data-index="{{index}}" 
+            bindtap="switchTab">
+        {{item}}
+      </view>
+    </view>
+    <!-- 标记全部已读按钮 -->
+    <view class="mark-all-btn" bindtap="markAllAsRead" wx:if="{{unreadCount > 0}}">
+      全部已读
+    </view>
+  </view>
+  
+  <view class="container">
+    <!-- 通知列表 -->
+    <view class="notification-list">
+      <block wx:if="{{filteredList.length > 0}}">
+        <notification-item 
+          wx:for="{{filteredList}}" 
+          wx:key="id"
+          notification="{{item}}"
+          bind:read="onNotificationRead"
+          bind:tap="onNotificationTap"
+        />
+      </block>
+      <view wx:else class="empty-list">
+        <view class="empty-icon"></view>
+        <view class="empty-text">暂无通知</view>
+      </view>
+    </view>
+  </view>
+</view>

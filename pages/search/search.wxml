@@ -1,0 +1,86 @@
+<!--search.wxml-->
+<header showBack="{{true}}" welcomeText="搜索应用"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <view class="container">
+    <!-- 搜索框 -->
+    <view class="search-header">
+      <view class="search-box">
+        <icon type="search" size="14" color="#999"></icon>
+        <input 
+          class="search-input" 
+          placeholder="请输入搜索关键词" 
+          value="{{keyword}}" 
+          bindinput="onInputChange"
+          confirm-type="search"
+          bindconfirm="doSearch"
+          focus="true"
+        />
+        <icon wx:if="{{showClearIcon}}" type="clear" size="14" color="#999" bindtap="clearInput"></icon>
+      </view>
+      <view class="search-btn" bindtap="doSearch">搜索</view>
+    </view>
+    
+    <!-- 搜索结果 -->
+    <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <view class="result-category">
+        <text class="category-title">应用 ({{searchResults.length}})</text>
+      </view>
+      
+      <view 
+        class="result-item" 
+        wx:for="{{searchResults}}" 
+        wx:key="id" 
+        bindtap="onResultTap"
+        data-id="{{item.id}}"
+        data-url="{{item.url}}"
+      >
+        <image class="result-icon" src="{{item.icon || '../../images/app_default.png'}}" mode="aspectFill"></image>
+        <view class="result-info">
+          <view class="result-title">{{item.name}}</view>
+          <view class="result-desc">{{item.desc}}</view>
+        </view>
+      </view>
+      
+      <view wx:if="{{searchResults.length === 0}}" class="no-results">
+        <text>未找到与"{{keyword}}"相关的应用</text>
+      </view>
+    </view>
+    
+    <!-- 历史搜索和热门搜索 -->
+    <view class="search-content" wx:else>
+      <!-- 历史搜索 -->
+      <view class="search-section" wx:if="{{historyList.length > 0}}">
+        <view class="section-header">
+          <text class="section-title">历史搜索</text>
+          <text class="clear-history" bindtap="clearHistory">清空</text>
+        </view>
+        <view class="tag-list">
+          <view 
+            class="tag-item" 
+            wx:for="{{historyList}}" 
+            wx:key="index"
+            bindtap="doSearch"
+            data-keyword="{{item}}"
+          >{{item}}</view>
+        </view>
+      </view>
+      
+      <!-- 热门搜索 -->
+      <view class="search-section">
+        <view class="section-header">
+          <text class="section-title">热门搜索</text>
+        </view>
+        <view class="tag-list">
+          <view 
+            class="tag-item" 
+            wx:for="{{hotList}}" 
+            wx:key="index"
+            bindtap="doSearch"
+            data-keyword="{{item}}"
+          >{{item}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view> 

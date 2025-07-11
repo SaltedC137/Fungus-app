@@ -1,0 +1,10 @@
+<!--logs.wxml-->
+<header welcomeText="日志信息" showBack="{{true}}"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <scroll-view class="scrollarea" scroll-y type="list">
+    <block wx:for="{{logs}}" wx:key="timeStamp" wx:for-item="log">
+      <view class="log-item">{{index + 1}}. {{log.date}}</view>
+    </block>
+  </scroll-view>
+</view>

@@ -1,0 +1,17 @@
+<!-- components/header/header.wxml -->
+<view class="header-container" style="padding-top: {{statusBarHeight}}px;">
+  <view class="header-content" style="height: {{navBarHeight}}px;">
+    <!-- 返回按钮 -->
+    <view wx:if="{{showBack}}" class="back-btn" bindtap="navigateBack">
+      <view class="back-arrow"></view>
+    </view>
+    
+    <!-- Logo -->
+    <view class="logo-container">
+      <image class="logo-image" src="/images/mushroom.png" mode="aspectFit"></image>
+    </view>
+    
+    <!-- 欢迎文本 -->
+    <view class="welcome-text">{{welcomeText}}</view>
+  </view>
+</view> 

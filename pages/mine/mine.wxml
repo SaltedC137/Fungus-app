@@ -1,0 +1,36 @@
+<!--mine.wxml-->
+<header showBack="{{true}}"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <view class="container">
+    <!-- 用户信息区域 -->
+    <view class="user-info-section">
+      <view class="user-info-wrapper">
+        <block wx:if="{{!hasUserInfo}}">
+          <view class="avatar-placeholder"></view>
+          <button class="login-btn" bindtap="getUserProfile">登录/注册</button>
+        </block>
+        <block wx:else>
+          <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+          <view class="user-name">{{userInfo.nickName}}</view>
+        </block>
+      </view>
+    </view>
+    
+    <!-- 功能菜单区域 -->
+    <view class="menu-section">
+      <view class="menu-list">
+        <view class="menu-item" wx:for="{{menuList}}" wx:key="index" bindtap="navigateToPage" data-index="{{index}}">
+          <view class="menu-icon {{item.icon}}"></view>
+          <view class="menu-text">{{item.text}}</view>
+          <view class="menu-arrow"></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 版本信息 -->
+    <view class="version-info">
+      <text>版本 1.0.0</text>
+    </view>
+  </view>
+</view> 

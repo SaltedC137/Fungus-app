@@ -1,0 +1,76 @@
+<!--index.wxml-->
+
+<header style="display: block;" >
+</header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <view class="banner">
+     <swiper indicator-dots indicator-color="rgba(255,255,255,1)"
+     indicator-active-color="#fff" circular autoplay interval="4000">
+     <swiper-item><image src="/images/banner_1.png"></image></swiper-item>
+     <swiper-item><image src="/images/banner_2.png"></image></swiper-item>
+     <swiper-item><image src="/images/banner_3.png"></image></swiper-item>
+     </swiper>
+  </view>
+
+  <view class="container">
+    <!-- 通知信息条 -->
+    <view class="notification-bar">
+      <view class="notification-icon">
+        <icon type="info" size="18" color="#1296db"></icon>
+      </view>
+      <view class="notification-content">
+        <view class="marquee-container">
+          <view class="marquee-text" style="animation-duration: {{notificationDuration}}s;">
+            <block wx:for="{{notificationList}}" wx:key="id">
+              <text class="marquee-item" bindtap="onNotificationTap" data-id="{{item.id}}">{{item.content}}</text>
+              <text class="marquee-separator">   •   </text>
+            </block>
+          </view>
+        </view>
+      </view>
+      <view class="notification-more" bindtap="goToNotifications">更多</view>
+    </view>
+    
+    <!-- 应用程序 4*3 布局 -->
+    <view class="apps-grid">
+      <view class="section-header">
+        <text class="section-title">应用中心</text>
+      </view>
+      <view class="apps-container">
+        <view class="app-item" wx:for="{{appGridList}}" wx:key="id" bindtap="onAppTap" data-id="{{item.id}}">
+          <image class="app-icon" src="{{item.icon || '/images/app_default.png'}}"  mode="aspectFill"></image>
+          <text class="app-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 搜索框 -->
+    <view class="search-box">
+      <view class="search-input">
+        <icon type="search" size="22" color="#999"></icon>
+        <input type="text" placeholder="搜索子程序" disabled="true" bindtap="onSearchTap" />
+      </view>
+    </view>
+    
+    <!-- 推荐内容 -->
+    <view class="content-section">
+      <view class="section-header">
+        <text class="section-title">推荐内容</text>
+        <text class="section-more" bindtap="viewMoreContent">更多 ></text>
+      </view>
+      <view class="content-list">
+        <view class="content-item" wx:for="{{contentList}}" wx:key="id" bindtap="onContentTap" data-id="{{item.id}}">
+          <image class="content-image" src="{{item.imageUrl || '/images/content_default.png'}}" mode="aspectFill"></image>
+          <view class="content-info">
+            <view class="content-title">{{item.title}}</view>
+            <view class="content-desc">{{item.desc}}</view>
+            <view class="content-meta">
+              <text class="content-date">{{item.date}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
