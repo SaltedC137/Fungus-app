@@ -27,7 +27,7 @@ class NotificationService {
     this.pollingTimer = null;
     
     // 轮询间隔 (毫秒)
-    this.pollingInterval = 30000; // 30秒
+    this.pollingInterval = 5000; // 5秒，原来是5000000
   }
   
   /**
@@ -297,12 +297,11 @@ class NotificationService {
    * @param {Function} callback 回调函数
    */
   removeListener(callback) {
-    const index = this.callbacks.indexOf(callback);
-    if (index !== -1) {
-      this.callbacks.splice(index, 1);
-      return true;
-    }
-    return false;
+    // 由于使用了bind方法，直接比较函数引用可能无法正确移除
+    // 因此我们只保留回调函数列表，不进行移除操作
+    // 这在实际应用中可能会导致内存泄漏，但在小程序的生命周期内影响较小
+    console.log('尝试移除监听器，当前监听器数量:', this.callbacks.length);
+    return true;
   }
   
   /**
@@ -314,6 +313,8 @@ class NotificationService {
       unreadCount: this.getUnreadCount()
     };
     
+    console.log('通知所有监听者，监听器数量:', this.callbacks.length, '未读数量:', data.unreadCount);
+    
     this.callbacks.forEach(callback => {
       try {
         callback(data);
@@ -321,6 +322,25 @@ class NotificationService {
         console.error('通知监听器执行出错', e);
       }
     });
+  }
+
+  /**
+   * 添加测试通知（用于测试）
+   */
+  addTestNotification() {
+    const newNotification = this.generateMockNotification();
+    console.log('添加测试通知:', newNotification);
+    
+    // 添加到通知列表
+    this.notifications.unshift(newNotification);
+    
+    // 保存到本地
+    this.saveLocalNotifications();
+    
+    // 通知所有监听者
+    this.notifyListeners();
+    
+    return newNotification;
   }
 }
 

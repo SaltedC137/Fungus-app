@@ -27,7 +27,7 @@
               wx:for="{{filteredList}}" 
               wx:key="id">
           <view class="notification-content" bindtap="viewDetail" data-id="{{item.id}}">
-            <view class="notification-type {{item.type}}">{{item.type === 'system' ? '系统' : '活动'}}</view>
+            <view class="notification-type {{item.type}}">{{item.type === 'system' ? '系统' : '待办'}}</view>
             <view class="notification-info">
               <view class="notification-title">{{item.title}}</view>
               <view class="notification-desc">{{item.content}}</view>

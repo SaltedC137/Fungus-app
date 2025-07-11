@@ -5,7 +5,7 @@ const notificationService = require('../../utils/notification-service.js')
 Page({
   data: {
     navBarHeight: 0, // 导航栏高度
-    tabList: ['全部', '系统', '活动'], // 移除了多余的空格
+    tabList: ['全部', '系统', '待办'], // 移除了多余的空格
     currentTab: 0,
     notificationList: [],
     filteredList: [],

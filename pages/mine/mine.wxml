@@ -3,21 +3,55 @@
 
 <view style="margin-top: {{navBarHeight}}px;">
   <view class="container">
-    <!-- 用户信息区域 -->
+    <!-- 第一部分：用户信息区域 -->
     <view class="user-info-section">
       <view class="user-info-wrapper">
         <block wx:if="{{!hasUserInfo}}">
-          <view class="avatar-placeholder"></view>
-          <button class="login-btn" bindtap="getUserProfile">登录/注册</button>
+          <view class="avatar-container">
+            <view class="avatar-placeholder"></view>
+          </view>
+          <view class="user-detail">
+            <button class="login-btn" bindtap="getUserProfile">登录/注册</button>
+          </view>
         </block>
         <block wx:else>
-          <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-          <view class="user-name">{{userInfo.nickName}}</view>
+          <view class="avatar-container">
+            <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+          </view>
+          <view class="user-detail">
+            <view class="user-name-row">
+              <text class="user-name">{{userInfo.nickName}}</text>
+              <text class="welcome-text">{{welcomeMessage}}</text>
+            </view>
+            <view class="user-role">{{userExtInfo.department}}{{userExtInfo.role}}</view>
+            <view class="user-group">{{userExtInfo.group}}</view>
+          </view>
         </block>
       </view>
     </view>
     
-    <!-- 功能菜单区域 -->
+    <!-- 第二部分：状态信息区域 -->
+    <view class="status-section">
+      <view class="status-item" bindtap="goToNotifications">
+        <view class="status-number">{{userStats.todoCount}}</view>
+        <view class="status-label">待办事项</view>
+      </view>
+      <view class="status-item">
+        <view class="status-icon welcome-icon">!</view>
+        <view class="status-label">欢迎词</view>
+      </view>
+      <view class="status-item">
+        <view class="status-icon {{userStats.isVerified ? 'verified-icon' : 'unverified-icon'}}">
+          {{userStats.isVerified ? '√' : '?'}}
+        </view>
+        <view class="status-label">{{userStats.isVerified ? '已认证' : '未认证'}}</view>
+      </view>
+    </view>
+    
+    <!-- 测试按钮 - 隐藏在界面中 -->
+    <view class="test-button" bindtap="addTestNotification">添加测试通知</view>
+    
+    <!-- 第三部分：功能菜单区域 -->
     <view class="menu-section">
       <view class="menu-list">
         <view class="menu-item" wx:for="{{menuList}}" wx:key="index" bindtap="navigateToPage" data-index="{{index}}">
