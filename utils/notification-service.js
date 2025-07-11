@@ -27,7 +27,7 @@ class NotificationService {
     this.pollingTimer = null;
     
     // 轮询间隔 (毫秒)
-    this.pollingInterval = 5000; // 5秒，原来是5000000
+    this.pollingInterval = 5000000; // 5秒，原来是5000000
   }
   
   /**
