@@ -4,7 +4,8 @@
     "pages/logs/logs",
     "pages/mine/mine",
     "pages/notification/notification",
-    "pages/search/search"
+    "pages/search/search",
+    "pages/apps/app1/app1"
   ],
   "window": {
     "navigationBarTextStyle": "black",
