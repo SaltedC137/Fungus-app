@@ -9,12 +9,6 @@ Page({
     userInfo: {},
     hasUserInfo: false,
     canIUseGetUserProfile: wx.canIUse('getUserProfile'),
-    // 用户扩展信息
-    userExtInfo: {
-      department: '信息科学与工程学院', // 院系信息
-      role: '学生',  // 角色：学生/教师
-      group: '软件工程2班'  // 组别
-    },
     // 用户统计数据
     userStats: {
       todoCount: 0,     // 待办事项数量
@@ -95,11 +89,25 @@ Page({
   
   // 检查登录状态
   checkLoginStatus() {
-    // 获取本地存储的登录态
-    const token = wx.getStorageSync('token');
-    if (token) {
-      // 有token，检查是否有效
+    // 获取本地存储的session_key
+    const session_key = wx.getStorageSync('session_key');
+    if (session_key) {
+      // 有session_key，检查是否有效
       this.checkSessionAndUserInfo();
+    } else {
+      // 尝试使用本地用户信息
+      const localUserInfo = wx.getStorageSync('localUserInfo');
+      if (localUserInfo) {
+        this.setData({
+          userInfo: {
+            nickName: localUserInfo.nickName || '', // 确保显示真实昵称
+            avatarUrl: localUserInfo.avatarUrl
+          },
+          hasUserInfo: true,
+          avatarUrl: localUserInfo.avatarUrl
+        });
+        console.log('使用本地用户信息显示，昵称:', localUserInfo.nickName);
+      }
     }
   },
 
@@ -114,8 +122,12 @@ Page({
         const storedAvatarUrl = wx.getStorageSync('avatarUrl');
         
         if (storedUserInfo) {
+          // 确保显示真实昵称，避免使用默认值
           this.setData({
-            userInfo: storedUserInfo,
+            userInfo: {
+              nickName: storedUserInfo.nickName || '',
+              avatarUrl: storedAvatarUrl || storedUserInfo.avatarUrl || ''
+            },
             hasUserInfo: true,
             phoneNumber: storedPhoneNumber || '',
             avatarUrl: storedAvatarUrl || storedUserInfo.avatarUrl || ''
@@ -124,74 +136,123 @@ Page({
         }
       },
       fail: () => {
-        // session_key 已经失效，需要重新登录
-        wx.removeStorageSync('token');
-        wx.removeStorageSync('userInfo');
-        wx.removeStorageSync('phoneNumber');
-        wx.removeStorageSync('avatarUrl');
-        this.setData({
-          hasUserInfo: false,
-          userInfo: {},
-          phoneNumber: '',
-          avatarUrl: ''
-        });
+        // session_key 已经失效，但仍然可以使用本地用户信息显示
+        const localUserInfo = wx.getStorageSync('localUserInfo');
+        const storedPhoneNumber = wx.getStorageSync('phoneNumber');
+        const storedAvatarUrl = wx.getStorageSync('avatarUrl');
+        
+        if (localUserInfo) {
+          this.setData({
+            userInfo: {
+              nickName: localUserInfo.nickName || '',
+              avatarUrl: storedAvatarUrl || localUserInfo.avatarUrl || ''
+            },
+            hasUserInfo: true,
+            phoneNumber: storedPhoneNumber || '',
+            avatarUrl: storedAvatarUrl || localUserInfo.avatarUrl || ''
+          });
+        } else {
+          // 无本地用户信息，清除登录状态
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('session_key');
+          wx.removeStorageSync('openid');
+          wx.removeStorageSync('userInfo');
+          this.setData({
+            hasUserInfo: false,
+            userInfo: {},
+            phoneNumber: '',
+            avatarUrl: ''
+          });
+        }
       }
     });
   },
   
   // 获取用户信息并登录
   getUserProfile(e) {
-    // 显示加载中
+    // 显示加载中提示
     wx.showLoading({
-      title: '登录中...',
+      title: '授权中...',
+      mask: true
     });
-
-    // 先调用wx.login获取code
-    wx.login({
-      success: (loginRes) => {
-        if (loginRes.code) {
-          // 获取用户信息
-          wx.getUserProfile({
-            desc: '用于完善会员资料',
-            success: (profileRes) => {
-              // 将用户信息保存到本地
-              this.setData({
-                userInfo: profileRes.userInfo,
-                hasUserInfo: true,
-                avatarUrl: profileRes.userInfo.avatarUrl
-              });
-              app.globalData.userInfo = profileRes.userInfo;
-              wx.setStorageSync('userInfo', profileRes.userInfo);
-              wx.setStorageSync('avatarUrl', profileRes.userInfo.avatarUrl);
-              
+    
+    // 直接调用getUserProfile，必须在用户点击事件处理函数中直接调用
+    wx.getUserProfile({
+      desc: '用于完善会员资料',
+      success: (profileRes) => {
+        console.log('获取用户信息成功:', profileRes);
+        
+        // 将用户信息保存到本地以支持离线使用
+        const localUserInfo = profileRes.userInfo;
+        wx.setStorageSync('localUserInfo', localUserInfo);
+        wx.setStorageSync('avatarUrl', localUserInfo.avatarUrl);
+        
+        // 更新页面信息，确保UI显示正常
+        this.setData({
+          userInfo: {
+            nickName: localUserInfo.nickName || '', // 确保显示真实昵称
+            avatarUrl: localUserInfo.avatarUrl
+          },
+          hasUserInfo: true,
+          avatarUrl: localUserInfo.avatarUrl
+        });
+        
+        // 更新加载提示
+        wx.showLoading({
+          title: '正在登录...',
+          mask: true
+        });
+        
+        // 获取code并调用登录接口
+        wx.login({
+          success: (loginRes) => {
+            console.log('wx.login成功:', loginRes);
+            if (loginRes.code) {
               // 调用后端登录接口，发送code和用户信息
               this.loginToServer(loginRes.code, profileRes.userInfo);
-            },
-            fail: (err) => {
-              console.error('获取用户信息失败', err);
+            } else {
               wx.hideLoading();
+              console.error('wx.login返回无code:', loginRes);
+              
+              // 即使登录失败，也能使用本地用户信息
               wx.showToast({
-                title: '获取用户信息失败',
-                icon: 'none'
+                title: '登录失败，使用离线模式',
+                icon: 'none',
+                duration: 2000
               });
             }
-          });
-        } else {
-          console.error('登录失败', loginRes);
-          wx.hideLoading();
-          wx.showToast({
-            title: '登录失败',
-            icon: 'none'
-          });
-        }
+          },
+          fail: (err) => {
+            wx.hideLoading();
+            console.error('wx.login调用失败:', err);
+            
+            // 即使登录失败，也能使用本地用户信息
+            wx.showToast({
+              title: '网络错误，使用离线模式',
+              icon: 'none',
+              duration: 2000
+            });
+          }
+        });
       },
       fail: (err) => {
-        console.error('wx.login调用失败', err);
         wx.hideLoading();
-        wx.showToast({
-          title: '网络错误，请重试',
-          icon: 'none'
-        });
+        console.error('获取用户信息失败:', err);
+        
+        // 检查是否是用户拒绝授权
+        if (err.errMsg === 'getUserProfile:fail auth deny') {
+          wx.showToast({
+            title: '用户取消授权',
+            icon: 'none',
+            duration: 2000
+          });
+        } else {
+          wx.showToast({
+            title: '获取用户信息失败',
+            icon: 'none',
+            duration: 2000
+          });
+        }
       }
     });
   },
@@ -215,105 +276,357 @@ Page({
     }
   },
   
-  // 获取手机号
+  // 获取手机号并完善个人信息
   getPhoneNumber(e) {
     if (e.detail.errMsg === "getPhoneNumber:ok") {
-      // 请注意：实际应用中需要将code发送到后端解密获取手机号
       const code = e.detail.code;
-      console.log('获取到手机号code:', code);
       
-      // 这里模拟一个手机号（实际应该由服务器返回解密后的手机号）
-      // 注意：真实场景下应该将code发送到服务器解密
-      const mockPhoneNumber = "135****8888";
-      
-      this.setData({
-        phoneNumber: mockPhoneNumber
+      // 显示加载提示
+      wx.showLoading({
+        title: '完善个人信息中...',
       });
-      wx.setStorageSync('phoneNumber', mockPhoneNumber);
       
-      wx.showToast({
-        title: '手机号获取成功',
-        icon: 'success'
+      // 获取本地存储的session_key和openid，而不是token
+      const session_key = wx.getStorageSync('session_key');
+      const openid = wx.getStorageSync('openid');
+      
+      if (!session_key || !openid) {
+        wx.hideLoading();
+        wx.showToast({
+          title: '请先登录',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 发送请求到服务器获取手机号
+      wx.request({
+        url: 'http://117.72.10.68/php_backend/phone_api_new.php',
+        method: 'POST',
+        header: {
+          'content-type': 'application/json'
+        },
+        data: {
+          code: code,
+          session_key: session_key,
+          openid: openid
+        },
+        success: (res) => {
+          wx.hideLoading();
+          
+          if (res.data.code === 0) {
+            // 获取手机号成功
+            const phoneNumber = res.data.data.phoneNumber;
+            
+            this.setData({
+              phoneNumber: phoneNumber
+            });
+            wx.setStorageSync('phoneNumber', phoneNumber);
+            
+            wx.showToast({
+              title: '个人信息完善成功',
+              icon: 'success'
+            });
+            
+            // 可以在这里添加更多个人信息完善的逻辑
+            console.log('个人信息完善成功，手机号:', phoneNumber);
+          } else {
+            // 获取手机号失败
+            console.error('获取手机号失败:', res.data);
+            wx.showToast({
+              title: res.data.msg || '个人信息完善失败',
+              icon: 'none'
+            });
+          }
+        },
+        fail: (err) => {
+          wx.hideLoading();
+          console.error('获取手机号请求失败:', err);
+          wx.showToast({
+            title: '网络错误，请重试',
+            icon: 'none'
+          });
+        }
       });
     } else {
       wx.showToast({
-        title: '获取手机号失败',
+        title: '您取消了授权',
         icon: 'none'
       });
     }
   },
 
   loginToServer(code, userInfo) {
-    // 这里应该替换为您自己的后端API地址
+    // 输出请求参数详情
+    console.log('登录请求参数:', {code: code, userInfo: userInfo});
+    
     wx.request({
-      url: 'https://117.72.10.68/',
+      url: 'http://117.72.10.68/php_backend/login_api_v2.php',
       method: 'POST',
       data: {
         code: code,
         userInfo: userInfo
       },
+      header: {
+        'content-type': 'application/json' // 确保设置正确的内容类型
+      },
       success: (res) => {
+        // 隐藏加载提示，无论成功与否
         wx.hideLoading();
-        if (res.data && res.data.token) {
-          // 保存登录凭证
-          wx.setStorageSync('token', res.data.token);
-          // 如果后端返回了额外的用户信息，可以更新
-          if (res.data.userExtInfo) {
-            this.setData({
-              userExtInfo: res.data.userExtInfo,
-              'userStats.isVerified': res.data.userExtInfo.isVerified || false
-            });
-          }
+        
+        // 输出完整响应
+        console.log('登录请求状态码:', res.statusCode);
+        console.log('登录请求响应头:', res.header);
+        console.log('登录请求响应内容:', res.data);
+        
+        if (res.data.code === 0) {
+          // 登录成功
+          const token = res.data.data.token;        // 保留token变量名，实际是session_key
+          const openid = res.data.data.openid;      // 新增：保存openid
+          const userInfo = res.data.data.userInfo;
+          
+          // 保存信息到本地
+          wx.setStorageSync('token', token);        // 为了兼容性，仍然保存token
+          wx.setStorageSync('session_key', token);  // 实际保存的是session_key
+          wx.setStorageSync('openid', openid);      // 保存openid
+          wx.setStorageSync('userInfo', userInfo);
+          wx.setStorageSync('phoneNumber', userInfo.phoneNumber || '');
+          
+          // 更新页面数据 - 确保显示真实昵称
+          this.setData({
+            userInfo: {
+              nickName: userInfo.nickName || '',  // 不再使用默认值"微信用户"
+              avatarUrl: userInfo.avatarUrl
+            },
+            phoneNumber: userInfo.phoneNumber || '',
+            hasUserInfo: true,
+            'userStats.isVerified': true
+          });
+          
           wx.showToast({
             title: '登录成功',
             icon: 'success'
           });
         } else {
+          // 登录失败，显示具体错误信息
+          console.error('登录失败:', res.data);
           wx.showToast({
-            title: '登录失败: ' + (res.data.message || '未知错误'),
-            icon: 'none'
+            title: res.data.msg || '登录失败',
+            icon: 'none',
+            duration: 2000
           });
+          
+          // 如果是数据库错误，运行数据库测试
+          if (res.statusCode === 500 && res.data.msg && (
+              res.data.msg.includes('数据库') || 
+              res.data.msg.includes('创建用户') || 
+              res.data.msg.includes('服务器内部错误'))) {
+            console.log('检测到数据库错误，运行测试...');
+            setTimeout(() => {
+              this.testDatabaseConnection();
+            }, 1000);
+          }
         }
       },
       fail: (err) => {
+        // 请求发送失败
         wx.hideLoading();
-        console.error('登录请求失败', err);
-        wx.showToast({
-          title: '网络错误，请重试',
-          icon: 'none'
-        });
+        console.error('登录请求失败详情:', err);
+        
+        // 检查是否是网络错误
+        if (err.errMsg.includes('request:fail')) {
+          wx.showToast({
+            title: '网络连接失败，请检查网络',
+            icon: 'none',
+            duration: 2000
+          });
+        } else {
+          wx.showToast({
+            title: '网络错误，请重试',
+            icon: 'none',
+            duration: 2000
+          });
+        }
       }
     });
   },
   
+  // 导航到各功能页面
   navigateToPage(e) {
-    const index = e.currentTarget.dataset.index
-    const url = this.data.menuList[index].url
-    if (url) {
-      wx.navigateTo({
-        url: url
-      })
-    } else {
-      wx.showToast({
-        title: '功能开发中',
-        icon: 'none'
-      })
-    }
+    const index = e.currentTarget.dataset.index;
+    const menu = this.data.menuList[index];
+    
+    wx.showToast({
+      title: `点击了${menu.text}，功能开发中`,
+      icon: 'none'
+    });
   },
-
+  
   // 跳转到通知页面
   goToNotifications() {
     wx.switchTab({
       url: '/pages/notification/notification'
     })
   },
-
-  // 添加测试通知（用于测试）
+  
+  // 添加测试通知 (开发测试用)
   addTestNotification() {
-    const newNotification = notificationService.addTestNotification();
+    notificationService.addTestNotification();
     wx.showToast({
       title: '已添加测试通知',
       icon: 'success'
+    });
+  },
+
+  // 登录失败时测试数据库连接
+  testDatabaseConnection() {
+    wx.showLoading({
+      title: '检查服务器...'
+    });
+    
+    wx.request({
+      url: 'http://117.72.10.68/php_backend/login_api_v2.php',
+      data: {
+        action: 'init_db',
+        code: 'init',
+        userInfo: {}
+      },
+      method: 'GET',
+      success: (res) => {
+        wx.hideLoading();
+        console.log('数据库初始化结果:', res.data);
+        
+        if (res.data && res.data.success) {
+          wx.showModal({
+            title: '数据库初始化成功',
+            content: '数据库表已创建，请重新尝试登录',
+            showCancel: false,
+            success: () => {
+              // 清除登录状态，重新登录
+              wx.removeStorageSync('token');
+              wx.removeStorageSync('session_key');
+              wx.removeStorageSync('openid');
+              this.setData({
+                hasUserInfo: false
+              });
+            }
+          });
+        } else {
+          let errorMsg = '数据库初始化失败';
+          if (res.data && res.data.error) {
+            errorMsg += ': ' + res.data.error;
+          }
+          
+          wx.showModal({
+            title: '数据库问题',
+            content: errorMsg,
+            showCancel: false
+          });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('数据库初始化请求失败:', err);
+        
+        // 如果init_db.php不存在，尝试手动创建表
+        this.tryManualDbInit();
+      }
+    });
+  },
+  
+  // 尝试手动创建数据库表
+  tryManualDbInit() {
+    wx.showLoading({
+      title: '尝试手动初始化...'
+    });
+    
+    wx.request({
+      url: 'http://117.72.10.68/php_backend/login_api_v2.php',
+      method: 'POST',
+      data: {
+        action: 'init_db',
+        code: 'manual_init',
+        userInfo: {
+          nickName: '测试用户',
+          avatarUrl: ''
+        }
+      },
+      header: {
+        'content-type': 'application/json'
+      },
+      success: (res) => {
+        wx.hideLoading();
+        console.log('手动初始化结果:', res.data);
+        
+        wx.showModal({
+          title: '手动初始化尝试完成',
+          content: '请重新尝试登录',
+          showCancel: false
+        });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('手动初始化失败:', err);
+        
+        // 尝试诊断数据库问题
+        this.diagnoseDatabaseIssues();
+      }
+    });
+  },
+  
+  // 诊断数据库问题
+  diagnoseDatabaseIssues() {
+    wx.showLoading({
+      title: '诊断数据库...'
+    });
+    
+    wx.request({
+      url: 'http://117.72.10.68/php_backend/login_api_v2.php',
+      data: {
+        action: 'diagnose_db',
+        code: 'diagnose',
+        userInfo: {}
+      },
+      method: 'GET',
+      success: (res) => {
+        wx.hideLoading();
+        console.log('数据库诊断结果:', res.data);
+        
+        // 分析诊断结果
+        let diagnosisMessage = '';
+        
+        if (res.data && res.data.success) {
+          if (res.data.tables.users.exists) {
+            diagnosisMessage = '数据库和表结构正常，但登录仍然失败。请检查服务器日志或联系管理员。';
+          } else {
+            diagnosisMessage = '数据库连接正常，但users表不存在。请联系管理员创建数据库表。';
+          }
+        } else {
+          if (res.data && res.data.errors && res.data.errors.length > 0) {
+            diagnosisMessage = '数据库问题: ' + res.data.errors.join(', ');
+          } else if (res.data && !res.data.database.connection) {
+            diagnosisMessage = '无法连接到数据库。请检查数据库配置和权限。';
+          } else {
+            diagnosisMessage = '数据库诊断失败，无法确定具体原因。';
+          }
+        }
+        
+        wx.showModal({
+          title: '数据库诊断结果',
+          content: diagnosisMessage,
+          showCancel: false
+        });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('数据库诊断请求失败:', err);
+        
+        wx.showModal({
+          title: '诊断失败',
+          content: '无法访问诊断脚本，请联系管理员检查服务器配置',
+          showCancel: false
+        });
+      }
     });
   }
 }) 

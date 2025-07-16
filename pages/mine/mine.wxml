@@ -24,17 +24,15 @@
           <view class="user-detail">
             <view class="user-name-row">
               <text class="user-name">{{userInfo.nickName}}</text>
-              <text class="welcome-text">{{welcomeMessage}}</text>
+              <text class="welcome-text">欢迎您！</text>
             </view>
-            <view class="user-role">{{userExtInfo.department}}{{userExtInfo.role}}</view>
-            <view class="user-group">{{userExtInfo.group}}</view>
             
             <view class="phone-section">
               <block wx:if="{{phoneNumber}}">
-                <text class="phone-number">微信绑定手机：{{phoneNumber}}</text>
+                <text class="phone-number">手机号：{{phoneNumber}}</text>
               </block>
               <block wx:else>
-                <button class="phone-btn" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">绑定手机号</button>
+                <button class="phone-btn" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">完善个人信息</button>
               </block>
             </view>
           </view>

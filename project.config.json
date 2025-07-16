@@ -29,7 +29,8 @@
     "swc": false,
     "disableSWC": true,
     "disableUseStrict": false,
-    "useCompilerPlugins": false
+    "useCompilerPlugins": false,
+    "urlCheck": false
   },
   "condition": {},
   "editorSetting": {
