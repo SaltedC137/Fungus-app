@@ -29,7 +29,9 @@ Page({
       { text: '我的设置', icon: 'icon-settings' },
       { text: '帮助中心', icon: 'icon-help' },
       { text: '关于我们', icon: 'icon-about' }
-    ]
+    ],
+    phoneNumber: '', // 用户手机号
+    avatarUrl: '', // 用户头像URL
   },
   
   onLoad() {
@@ -108,10 +110,15 @@ Page({
         // session_key 未过期，并且在本生命周期一直有效
         // 获取本地存储的用户信息
         const storedUserInfo = wx.getStorageSync('userInfo');
+        const storedPhoneNumber = wx.getStorageSync('phoneNumber');
+        const storedAvatarUrl = wx.getStorageSync('avatarUrl');
+        
         if (storedUserInfo) {
           this.setData({
             userInfo: storedUserInfo,
-            hasUserInfo: true
+            hasUserInfo: true,
+            phoneNumber: storedPhoneNumber || '',
+            avatarUrl: storedAvatarUrl || storedUserInfo.avatarUrl || ''
           });
           app.globalData.userInfo = storedUserInfo;
         }
@@ -120,9 +127,13 @@ Page({
         // session_key 已经失效，需要重新登录
         wx.removeStorageSync('token');
         wx.removeStorageSync('userInfo');
+        wx.removeStorageSync('phoneNumber');
+        wx.removeStorageSync('avatarUrl');
         this.setData({
           hasUserInfo: false,
-          userInfo: {}
+          userInfo: {},
+          phoneNumber: '',
+          avatarUrl: ''
         });
       }
     });
@@ -146,10 +157,13 @@ Page({
               // 将用户信息保存到本地
               this.setData({
                 userInfo: profileRes.userInfo,
-                hasUserInfo: true
+                hasUserInfo: true,
+                avatarUrl: profileRes.userInfo.avatarUrl
               });
               app.globalData.userInfo = profileRes.userInfo;
               wx.setStorageSync('userInfo', profileRes.userInfo);
+              wx.setStorageSync('avatarUrl', profileRes.userInfo.avatarUrl);
+              
               // 调用后端登录接口，发送code和用户信息
               this.loginToServer(loginRes.code, profileRes.userInfo);
             },
@@ -180,6 +194,53 @@ Page({
         });
       }
     });
+  },
+  
+  // 获取用户头像
+  onChooseAvatar(e) {
+    const { avatarUrl } = e.detail;
+    this.setData({
+      avatarUrl,
+    });
+    wx.setStorageSync('avatarUrl', avatarUrl);
+    
+    // 如果已经有用户信息，更新头像
+    if (this.data.hasUserInfo) {
+      let userInfo = this.data.userInfo;
+      userInfo.avatarUrl = avatarUrl;
+      this.setData({
+        userInfo: userInfo
+      });
+      wx.setStorageSync('userInfo', userInfo);
+    }
+  },
+  
+  // 获取手机号
+  getPhoneNumber(e) {
+    if (e.detail.errMsg === "getPhoneNumber:ok") {
+      // 请注意：实际应用中需要将code发送到后端解密获取手机号
+      const code = e.detail.code;
+      console.log('获取到手机号code:', code);
+      
+      // 这里模拟一个手机号（实际应该由服务器返回解密后的手机号）
+      // 注意：真实场景下应该将code发送到服务器解密
+      const mockPhoneNumber = "135****8888";
+      
+      this.setData({
+        phoneNumber: mockPhoneNumber
+      });
+      wx.setStorageSync('phoneNumber', mockPhoneNumber);
+      
+      wx.showToast({
+        title: '手机号获取成功',
+        icon: 'success'
+      });
+    } else {
+      wx.showToast({
+        title: '获取手机号失败',
+        icon: 'none'
+      });
+    }
   },
 
   loginToServer(code, userInfo) {

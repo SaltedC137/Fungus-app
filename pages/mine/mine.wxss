@@ -53,6 +53,7 @@
 
 .avatar-container {
   margin-right: 30rpx;
+  position: relative;
 }
 
 .user-avatar {
@@ -68,6 +69,35 @@
   height: 150rpx;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 头像选择器样式 */
+.avatar-wrapper {
+  background: transparent;
+  padding: 0;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  border: none;
+}
+
+.avatar-wrapper::after {
+  border: none;
+}
+
+.edit-avatar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40rpx;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-size: 20rpx;
+  text-align: center;
+  line-height: 40rpx;
 }
 
 .user-detail {
@@ -104,6 +134,37 @@
 .user-group {
   font-size: 26rpx;
   opacity: 0.8;
+  margin-bottom: 14rpx;
+}
+
+/* 手机号码样式 */
+.phone-section {
+  margin-top: 14rpx;
+}
+
+.phone-number {
+  font-size: 24rpx;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6rpx 16rpx;
+  border-radius: 30rpx;
+  display: inline-block;
+}
+
+.phone-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  font-size: 24rpx;
+  padding: 6rpx 20rpx;
+  line-height: 1.6;
+  border-radius: 30rpx;
+  display: inline-block;
+  margin: 0;
+}
+
+.phone-btn::after {
+  border: none;
 }
 
 .login-btn {
@@ -200,6 +261,15 @@
   color: #666;
 }
 
+/* 隐藏测试按钮 */
+.test-button {
+  display: none; /* 生产环境隐藏 */
+  margin: 20rpx;
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+}
+
 /* 菜单区域样式 */
 .menu-section {
   margin: 20rpx 30rpx;
@@ -285,20 +355,6 @@
 
 .menu-item:active .menu-arrow {
   transform: rotate(45deg) translateX(4rpx);
-}
-
-/* 测试按钮样式 */
-.test-button {
-  width: 200rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 24rpx;
-  text-align: center;
-  color: #999;
-  background-color: #f5f5f5;
-  border-radius: 30rpx;
-  margin: 10rpx auto;
-  opacity: 0.7;
 }
 
 /* 版本信息样式 */
