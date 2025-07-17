@@ -1,0 +1,65 @@
+/* pages/bind-info/bind-info.wxss */
+
+.container {
+  padding: 30rpx;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 50rpx;
+  color: #333;
+}
+
+.form-container {
+  background-color: #fff;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.form-input {
+  height: 90rpx;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  background-color: #f9f9f9;
+}
+
+.submit-btn {
+  margin-top: 50rpx;
+  background-color: #1296db;
+  color: #fff;
+  font-size: 32rpx;
+  height: 90rpx;
+  line-height: 60rpx;
+  border-radius: 45rpx;
+}
+
+.submit-btn::after {
+  border: none;
+}
+
+.submit-btn[disabled] {
+  background-color: #cccccc;
+  color: #ffffff;
+}
+
+.tips {
+  margin-top: 30rpx;
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+} 

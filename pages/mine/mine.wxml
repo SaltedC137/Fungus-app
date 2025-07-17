@@ -6,12 +6,12 @@
     <!-- 第一部分：用户信息区域 -->
     <view class="user-info-section">
       <view class="user-info-wrapper">
-        <block wx:if="{{!hasUserInfo}}">
+        <block wx:if="{{!isLoggedIn}}">
           <view class="avatar-container">
             <view class="avatar-placeholder"></view>
           </view>
           <view class="user-detail">
-            <button class="login-btn" bindtap="getUserProfile">微信一键登录</button>
+            <button class="login-btn" bindtap="getUserProfile" loading="{{loginBtnLoading}}">微信一键登录</button>
           </view>
         </block>
         <block wx:else>
@@ -19,23 +19,28 @@
             <!-- 修改头像选择按钮 -->
             <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
               <image class="user-avatar" src="{{avatarUrl || userInfo.avatarUrl || '/images/app_default.png'}}" mode="aspectFill"></image>
-              <view class="edit-avatar">更换</view>
             </button>
-            <!-- 备用头像选择按钮 -->
-
           </view>
           <view class="user-detail">
             <view class="user-name-row">
-              <text class="user-name">{{userInfo.nickName || '微信用户'}}</text>
+              <text class="user-name">{{userInfo.userName || userInfo.nickName || '微信用户'}}</text>
               <text class="welcome-text">欢迎您！</text>
+            </view>
+            
+            <view class="user-info-row" wx:if="{{userInfo.studentId}}">
+              <text class="info-label">学号：</text>
+              <text class="info-value">{{userInfo.studentId}}</text>
             </view>
             
             <view class="phone-section">
               <block wx:if="{{phoneNumber}}">
                 <text class="phone-number">手机号：{{phoneNumber}}</text>
               </block>
+              <block wx:elif="{{needPhoneBind}}">
+                <button class="phone-btn" bindtap="getPhoneNumber">绑定信息</button>
+              </block>
               <block wx:else>
-                <button class="phone-btn" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">完善个人信息</button>
+                <button class="phone-btn" bindtap="getPhoneNumber">完善个人信息</button>
               </block>
             </view>
           </view>
@@ -56,11 +61,11 @@
         <view class="status-icon welcome-icon">!</view>
         <view class="status-label">欢迎访问菌材通</view>
       </view>
-      <view class="status-item">
-        <view class="status-icon {{userStats.isVerified ? 'verified-icon' : 'unverified-icon'}}">
-          {{userStats.isVerified ? '√' : '?'}}
+      <view class="status-item" bindtap="{{!userStats.isVerified && isLoggedIn ? 'verifyUser' : ''}}">
+        <view class="status-icon {{userStats.isVerified && isLoggedIn ? 'verified-icon' : 'unverified-icon'}}">
+          {{userStats.isVerified && isLoggedIn ? '√' : '?'}}
         </view>
-        <view class="status-label">{{userStats.isVerified ? '已认证' : '未认证'}}</view>
+        <view class="status-label">{{userStats.isVerified && isLoggedIn ? '已认证' : '未认证'}}</view>
       </view>
     </view>
     
@@ -68,7 +73,13 @@
     <view class="test-button" bindtap="addTestNotification">添加测试通知</view>
     
     <!-- 第三部分：功能菜单区域 -->
-
+    <view class="menu-section" wx:if="{{isLoggedIn}}">
+      <view class="menu-item" bindtap="logout">
+        <view class="menu-icon logout-icon">⏏</view>
+        <view class="menu-label">退出登录</view>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
     
     <!-- 版本信息 -->
     <view class="version-info">

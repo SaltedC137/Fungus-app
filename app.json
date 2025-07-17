@@ -5,7 +5,8 @@
     "pages/mine/mine",
     "pages/notification/notification",
     "pages/search/search",
-    "pages/apps/app1/app1"
+    "pages/apps/app1/app1",
+    "pages/bind-info/bind-info"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -1,0 +1,33 @@
+<!--notification/detail.wxml-->
+<header showBack="{{true}}"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <view class="container">
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loading}}">
+      <view class="loading-icon"></view>
+      <view class="loading-text">加载中...</view>
+    </view>
+    
+    <!-- 错误提示 -->
+    <view class="error" wx:elif="{{error}}">
+      <view class="error-icon"></view>
+      <view class="error-text">{{errorMsg}}</view>
+      <view class="error-btn" bindtap="goBack">返回</view>
+    </view>
+    
+    <!-- 通知详情 -->
+    <view class="notification-detail" wx:elif="{{notification}}">
+      <view class="notification-header">
+        <view class="notification-type {{notification.type}}">
+          {{notification.type === 'system' ? '系统' : notification.type === 'activity' ? '待办' : notification.type}}
+        </view>
+        <view class="notification-time">{{notification.time}}</view>
+      </view>
+      
+      <view class="notification-title">{{notification.title}}</view>
+      
+      <view class="notification-content">{{notification.content}}</view>
+    </view>
+  </view>
+</view> 

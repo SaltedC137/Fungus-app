@@ -4,11 +4,11 @@
  * 用于管理通知数据和实现实时更新
  */
 
+// 引入通知后端服务
+const notificationBackend = require('./notification-backend');
+
 // 通知类型
-const NotificationType = {
-  SYSTEM: 'system',
-  ACTIVITY: 'activity'
-};
+const NotificationType = notificationBackend.NotificationType;
 
 // 通知服务类
 class NotificationService {
@@ -17,17 +17,17 @@ class NotificationService {
     this.callbacks = []; // 回调函数列表
     this.isInitialized = false; // 是否已初始化
     
-    // 模拟WebSocket连接状态
+    // WebSocket连接状态
     this.isConnected = false;
     
-    // 模拟WebSocket连接ID
+    // WebSocket连接ID
     this.connectionId = '';
     
-    // 模拟服务器轮询定时器
+    // 服务器轮询定时器
     this.pollingTimer = null;
     
     // 轮询间隔 (毫秒)
-    this.pollingInterval = 5000000; // 5秒，原来是5000000
+    this.pollingInterval = 30000; // 30秒
   }
   
   /**
@@ -39,7 +39,7 @@ class NotificationService {
     // 加载本地存储的通知
     this.loadLocalNotifications();
     
-    // 连接到服务器 (模拟)
+    // 连接到服务器
     this.connectToServer();
     
     this.isInitialized = true;
@@ -73,25 +73,42 @@ class NotificationService {
   }
   
   /**
-   * 连接到服务器 (模拟)
+   * 连接到服务器
    */
   connectToServer() {
-    // 模拟连接过程
+    // 检查是否已登录
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      console.log('用户未登录，暂不连接通知服务器');
+      return;
+    }
+    
+    // 如果已经连接，不需要重复连接
+    if (this.isConnected) {
+      console.log('通知服务已连接，无需重复连接');
+      return true;
+    }
+    
     console.log('正在连接到通知服务器...');
     
-    // 模拟连接延迟
-    setTimeout(() => {
-      this.isConnected = true;
-      this.connectionId = 'mock-conn-' + Date.now();
-      console.log('已连接到通知服务器', this.connectionId);
-      
-      // 获取最新通知
-      this.fetchNotifications();
-      
-      // 启动轮询
-      this.startPolling();
-      
-    }, 1000);
+    // 先设置连接状态，避免重复连接
+    this.isConnected = true;
+    this.connectionId = 'conn-' + Date.now();
+    
+    // 获取最新通知
+    this.fetchNotifications()
+      .then(() => {
+        console.log('成功获取通知数据');
+      })
+      .catch(err => {
+        console.error('获取通知失败，但仍继续连接:', err);
+      });
+    
+    // 启动轮询
+    this.startPolling();
+    
+    console.log('已连接到通知服务器', this.connectionId);
+    return true;
   }
   
   /**
@@ -103,7 +120,6 @@ class NotificationService {
     // 停止轮询
     this.stopPolling();
     
-    // 模拟断开连接
     this.isConnected = false;
     this.connectionId = '';
     console.log('已断开与通知服务器的连接');
@@ -136,82 +152,75 @@ class NotificationService {
   }
   
   /**
-   * 获取通知列表 (模拟从服务器获取)
+   * 获取通知列表 (从服务器获取)
    */
   fetchNotifications() {
     console.log('正在获取最新通知...');
     
-    // 模拟网络请求
-    setTimeout(() => {
-      // 模拟服务器返回的新通知
-      const hasNewNotifications = Math.random() > 0.7; // 30%概率有新通知
-      
-      if (hasNewNotifications) {
-        const newNotification = this.generateMockNotification();
-        console.log('收到新通知:', newNotification);
+    // 从后端获取通知
+    return notificationBackend.fetchNotifications()
+      .then(data => {
+        if (data && data.notifications) {
+          console.log('收到通知数据:', data.notifications.length);
+          
+          // 更新通知列表
+          this.notifications = data.notifications;
+          
+          // 保存到本地
+          this.saveLocalNotifications();
+          
+          // 通知所有监听者
+          this.notifyListeners();
+          
+          return {
+            notifications: this.notifications,
+            unreadCount: this.getUnreadCount(),
+            isLoggedIn: data.isLoggedIn
+          };
+        } else {
+          console.warn('收到的通知数据格式不正确:', data);
+          return {
+            notifications: this.notifications,
+            unreadCount: this.getUnreadCount(),
+            isLoggedIn: false
+          };
+        }
+      })
+      .catch(err => {
+        console.error('获取通知失败:', err);
         
-        // 添加到通知列表
-        this.notifications.unshift(newNotification);
+        // 如果是网络错误，不要重复尝试连接，避免过多错误日志
+        if (err && err.errno === 600009) {
+          // 网络错误，暂停轮询一段时间
+          this.pausePollingTemporarily();
+        }
         
-        // 保存到本地
-        this.saveLocalNotifications();
-        
-        // 通知所有监听者
-        this.notifyListeners();
-      } else {
-        console.log('没有新通知');
-      }
-    }, 500);
+        // 返回当前缓存的通知数据
+        return Promise.reject({
+          error: err,
+          notifications: this.notifications,
+          unreadCount: this.getUnreadCount(),
+          isLoggedIn: false
+        });
+      });
   }
   
   /**
-   * 生成模拟通知
+   * 暂时暂停轮询，避免频繁错误
    */
-  generateMockNotification() {
-    const id = Date.now();
-    const types = [NotificationType.SYSTEM, NotificationType.ACTIVITY];
-    const type = types[Math.floor(Math.random() * types.length)];
+  pausePollingTemporarily() {
+    // 先停止当前轮询
+    this.stopPolling();
     
-    const systemTitles = ['系统更新', '安全提醒', '账号通知', '服务公告'];
-    const activityTitles = ['活动预告', '优惠活动', '新功能体验', '用户调研'];
+    console.log('由于网络错误，暂停轮询5分钟');
     
-    const titles = type === NotificationType.SYSTEM ? systemTitles : activityTitles;
-    const title = titles[Math.floor(Math.random() * titles.length)];
-    
-    const systemContents = [
-      '系统将于近期进行升级维护，请留意相关公告。',
-      '请定期修改密码，保障账号安全。',
-      '您的账号信息已更新，请查看详情。',
-      '平台服务条款已更新，请查看最新版本。'
-    ];
-    
-    const activityContents = [
-      '新用户专享优惠活动即将开始，敬请期待。',
-      '限时折扣活动正在进行中，点击参与。',
-      '新功能抢先体验，欢迎提供反馈。',
-      '参与用户调研，赢取精美礼品。'
-    ];
-    
-    const contents = type === NotificationType.SYSTEM ? systemContents : activityContents;
-    const content = contents[Math.floor(Math.random() * contents.length)];
-    
-    // 格式化当前时间为 YYYY-MM-DD HH:mm
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const time = `${year}-${month}-${day} ${hours}:${minutes}`;
-    
-    return {
-      id,
-      type,
-      title,
-      content,
-      time,
-      isRead: false
-    };
+    // 5分钟后重新开始轮询
+    setTimeout(() => {
+      if (this.isConnected) {
+        this.startPolling();
+        console.log('恢复通知轮询');
+      }
+    }, 5 * 60 * 1000); // 5分钟
   }
   
   /**
@@ -245,6 +254,7 @@ class NotificationService {
     const index = this.notifications.findIndex(item => item.id === id);
     if (index === -1) return false;
     
+    // 先在本地标记为已读
     this.notifications[index].isRead = true;
     
     // 保存到本地
@@ -253,17 +263,38 @@ class NotificationService {
     // 通知所有监听者
     this.notifyListeners();
     
+    // 向后端发送标记请求
+    notificationBackend.markAsRead(id)
+      .then(() => {
+        console.log('通知已标记为已读:', id);
+      })
+      .catch(err => {
+        console.error('标记通知已读失败:', err);
+        // 如果失败，恢复未读状态
+        this.notifications[index].isRead = false;
+        this.saveLocalNotifications();
+        this.notifyListeners();
+      });
+    
     return true;
   }
   
   /**
    * 标记所有通知为已读
+   * @param {string} type 可选，指定类型的通知
+   * @returns {boolean} 是否有未读通知被标记
    */
-  markAllAsRead() {
+  markAllAsRead(type = null) {
+    if (!Array.isArray(this.notifications) || this.notifications.length === 0) {
+      console.log('没有通知可标记为已读');
+      return false;
+    }
+    
     let hasUnread = false;
     
+    // 标记所有或指定类型的未读通知
     this.notifications.forEach(item => {
-      if (!item.isRead) {
+      if (!item.isRead && (type === null || item.type === type)) {
         item.isRead = true;
         hasUnread = true;
       }
@@ -275,9 +306,79 @@ class NotificationService {
       
       // 通知所有监听者
       this.notifyListeners();
+      
+      // 向后端发送标记所有已读请求
+      notificationBackend.markAllAsRead()
+        .then(() => {
+          console.log('所有通知已标记为已读');
+        })
+        .catch(err => {
+          console.error('标记所有通知已读失败:', err);
+          // 错误处理 - 可以选择是否回滚本地状态
+        });
+    } else {
+      console.log('没有未读通知需要标记');
     }
     
     return hasUnread;
+  }
+  
+  /**
+   * 添加测试通知（仅用于开发测试）
+   * @param {string} type 可选，通知类型，默认为system
+   */
+  addTestNotification(type = 'system') {
+    // 构造测试通知
+    const testNotification = {
+      id: Date.now().toString(),
+      type: type,
+      title: type === 'system' ? '系统测试通知' : '待办测试通知',
+      content: type === 'system' ? 
+        '这是一条测试系统通知，用于测试通知功能是否正常工作。' : 
+        '这是一条测试待办通知，用于测试待办功能是否正常工作。',
+      time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      isRead: false
+    };
+    
+    // 添加到通知列表
+    this.notifications.unshift(testNotification);
+    
+    // 保存到本地
+    this.saveLocalNotifications();
+    
+    // 通知所有监听者
+    this.notifyListeners();
+    
+    // 尝试从服务器获取最新通知，确保本地和服务器同步
+    // 但不要在失败时影响用户体验
+    this.fetchNotifications()
+      .then(() => {
+        console.log('已同步服务器通知数据');
+      })
+      .catch(err => {
+        // 只记录错误，不影响用户体验
+        console.error('同步服务器通知数据失败，但本地通知已添加:', err);
+      });
+    
+    // 同时向后端发送添加测试通知请求
+    // 但不要在失败时影响用户体验
+    notificationBackend.addTestNotification(type)
+      .then((result) => {
+        if (result.success === false) {
+          console.warn('向服务器添加测试通知部分失败:', result.message);
+        } else {
+          console.log('已向服务器添加测试通知');
+        }
+        
+        // 无论成功与否，都不再重新获取通知列表
+        // 因为我们已经在本地添加了通知，避免重复获取
+      })
+      .catch(err => {
+        console.error('向服务器添加测试通知失败，但本地通知已添加:', err);
+      });
+    
+    console.log('已添加测试通知:', testNotification);
+    return testNotification;
   }
   
   /**
@@ -297,11 +398,16 @@ class NotificationService {
    * @param {Function} callback 回调函数
    */
   removeListener(callback) {
-    // 由于使用了bind方法，直接比较函数引用可能无法正确移除
-    // 因此我们只保留回调函数列表，不进行移除操作
-    // 这在实际应用中可能会导致内存泄漏，但在小程序的生命周期内影响较小
-    console.log('尝试移除监听器，当前监听器数量:', this.callbacks.length);
-    return true;
+    // 使用函数字符串比较来移除监听器
+    const callbackStr = callback.toString();
+    const initialLength = this.callbacks.length;
+    
+    this.callbacks = this.callbacks.filter(cb => {
+      return cb.toString() !== callbackStr;
+    });
+    
+    console.log('移除监听器，之前数量:', initialLength, '现在数量:', this.callbacks.length);
+    return initialLength !== this.callbacks.length;
   }
   
   /**
@@ -322,25 +428,6 @@ class NotificationService {
         console.error('通知监听器执行出错', e);
       }
     });
-  }
-
-  /**
-   * 添加测试通知（用于测试）
-   */
-  addTestNotification() {
-    const newNotification = this.generateMockNotification();
-    console.log('添加测试通知:', newNotification);
-    
-    // 添加到通知列表
-    this.notifications.unshift(newNotification);
-    
-    // 保存到本地
-    this.saveLocalNotifications();
-    
-    // 通知所有监听者
-    this.notifyListeners();
-    
-    return newNotification;
   }
 }
 

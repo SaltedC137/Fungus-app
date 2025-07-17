@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "header": "/components/header/header"
+  },
+  "navigationBarTitleText": "完善个人信息",
+  "navigationStyle": "custom"
+} 

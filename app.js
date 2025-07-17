@@ -1,6 +1,8 @@
 // app.js
 // 引入通知服务
 const notificationService = require('./utils/notification-service');
+// 引入登录管理器
+const loginManager = require('./utils/login-manager').default;
 
 App({
   onLaunch() {
@@ -8,6 +10,9 @@ App({
     const logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
+
+    // 初始化登录管理器
+    loginManager.init();
 
     // 登录
     wx.login({
@@ -48,6 +53,19 @@ App({
     
     // 监听通知更新，更新全局未读数
     notificationService.addListener(this.handleNotificationUpdate.bind(this));
+    
+    // 监听登录状态变化
+    loginManager.addStateChangeListener(this.handleLoginStateChange.bind(this));
+  },
+  
+  // 处理登录状态变化
+  handleLoginStateChange(state) {
+    console.log('App收到登录状态变化:', state);
+    
+    // 更新全局数据
+    this.globalData.isLoggedIn = state.isLoggedIn;
+    this.globalData.userInfo = state.userInfo;
+    this.globalData.needPhoneBind = state.needPhoneBind;
   },
   
   // 处理通知更新
@@ -66,12 +84,19 @@ App({
     }
   },
   
+  // 执行登录
+  doLogin() {
+    return loginManager.doLogin();
+  },
+  
   globalData: {
     userInfo: null,
     systemInfo: null,
     menuButtonInfo: null,
     navBarHeight: 0,
     appGridList: [], // 应用列表数据
-    unreadNotificationCount: 0 // 未读通知数量
+    unreadNotificationCount: 0, // 未读通知数量
+    isLoggedIn: false, // 是否已登录
+    needPhoneBind: false // 是否需要绑定手机号
   }
 })

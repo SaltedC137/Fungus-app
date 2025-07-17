@@ -9,7 +9,8 @@
             wx:for="{{tabList}}" 
             wx:key="index" 
             data-index="{{index}}" 
-            bindtap="switchTab">
+            bindtap="switchTab"
+            wx:if="{{index !== 2 || isLoggedIn}}"> <!-- 非登录用户不显示待办标签 -->
         {{item}}
       </view>
     </view>
@@ -20,6 +21,11 @@
   </view>
   
   <view class="container">
+    <!-- 登录提示 -->
+    <view class="login-tip" wx:if="{{!isLoggedIn}}">
+      <text>登录后可查看待办通知</text>
+    </view>
+    
     <!-- 通知列表 -->
     <view class="notification-list">
       <block wx:if="{{filteredList.length > 0}}">
@@ -27,7 +33,7 @@
               wx:for="{{filteredList}}" 
               wx:key="id">
           <view class="notification-content" bindtap="viewDetail" data-id="{{item.id}}">
-            <view class="notification-type {{item.type}}">{{item.type === 'system' ? '系统' : '待办'}}</view>
+            <view class="notification-type {{item.type}}">{{item.type === 'system' ? '系统' : item.type === 'activity' ? '待办' : item.type}}</view>
             <view class="notification-info">
               <view class="notification-title">{{item.title}}</view>
               <view class="notification-desc">{{item.content}}</view>

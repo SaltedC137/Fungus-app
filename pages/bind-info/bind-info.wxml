@@ -1,0 +1,33 @@
+<!--pages/bind-info/bind-info.wxml-->
+<header showBack="{{true}}"></header>
+
+<view style="margin-top: {{navBarHeight}}px;">
+  <view class="container">
+    <view class="page-title">
+      <text>完善个人信息</text>
+    </view>
+    
+    <view class="form-container">
+      <view class="form-item">
+        <view class="form-label">手机号</view>
+        <input class="form-input" type="number" placeholder="请输入手机号" value="{{phoneNumber}}" bindinput="inputPhone" maxlength="11" />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">学号</view>
+        <input class="form-input" type="text" placeholder="请输入学号" value="{{studentId}}" bindinput="inputStudentId" maxlength="20" />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">姓名</view>
+        <input class="form-input" type="text" placeholder="请输入姓名" value="{{userName}}" bindinput="inputUserName" maxlength="20" />
+      </view>
+      
+      <button class="submit-btn" bindtap="submitInfo" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">提交认证</button>
+      
+      <view class="tips">
+        <text>提示：信息提交后将进行认证，请确保信息真实有效</text>
+      </view>
+    </view>
+  </view>
+</view> 

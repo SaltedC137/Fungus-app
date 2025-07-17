@@ -7,6 +7,16 @@
   width: 100%;
 }
 
+/* 登录提示样式 */
+.login-tip {
+  background: #fff8e1;
+  padding: 16rpx 30rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #ff9800;
+  margin-bottom: 20rpx;
+}
+
 /* 标签栏样式 */
 .tab-container {
   position: fixed;
@@ -158,10 +168,12 @@
 .notification-desc {
   font-size: 28rpx;
   color: #666;
-  line-height: 1.5;
+  line-height: 1.6;
   margin-bottom: 16rpx;
+  word-break: break-all; /* 允许在任意字符间断行 */
+  white-space: pre-wrap; /* 保留换行符和空格，允许换行 */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3; /* 最多显示3行 */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
