@@ -16,14 +16,17 @@
         </block>
         <block wx:else>
           <view class="avatar-container">
+            <!-- 修改头像选择按钮 -->
             <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-              <image class="user-avatar" src="{{avatarUrl || userInfo.avatarUrl}}" mode="aspectFill"></image>
+              <image class="user-avatar" src="{{avatarUrl || userInfo.avatarUrl || '/images/app_default.png'}}" mode="aspectFill"></image>
               <view class="edit-avatar">更换</view>
             </button>
+            <!-- 备用头像选择按钮 -->
+
           </view>
           <view class="user-detail">
             <view class="user-name-row">
-              <text class="user-name">{{userInfo.nickName}}</text>
+              <text class="user-name">{{userInfo.nickName || '微信用户'}}</text>
               <text class="welcome-text">欢迎您！</text>
             </view>
             
@@ -44,7 +47,8 @@
     <view class="status-section">
       <view class="status-item" bindtap="goToNotifications">
         <view class="status-icon stuff">
-        <view class="status-number">{{userStats.todoCount}}</view>
+          @
+          <view class="status-number">{{userStats.todoCount}}</view>
         </view>
         <view class="status-label">待办事项</view>
       </view>
@@ -64,15 +68,7 @@
     <view class="test-button" bindtap="addTestNotification">添加测试通知</view>
     
     <!-- 第三部分：功能菜单区域 -->
-    <view class="menu-section">
-      <view class="menu-list">
-        <view class="menu-item" wx:for="{{menuList}}" wx:key="index" bindtap="navigateToPage" data-index="{{index}}">
-          <view class="menu-icon {{item.icon}}"></view>
-          <view class="menu-text">{{item.text}}</view>
-          <view class="menu-arrow"></view>
-        </view>
-      </view>
-    </view>
+
     
     <!-- 版本信息 -->
     <view class="version-info">

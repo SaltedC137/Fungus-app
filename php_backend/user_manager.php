@@ -289,19 +289,19 @@ class UserManager
             if ($stmt->rowCount() > 0) {
                 $user = $stmt->fetch();
                 error_log("用户资料获取成功: " . json_encode($user));
-                error_log("数据库中的nickname值: '" . $user['nickname'] . "'");
+                error_log("数据库中的nickname值: '" . ($user['nickname'] ?? '空') . "'");
                 
-                // 构建前端需要的用户资料格式
+                // 构建前端需要的用户资料格式，确保所有字段都有默认值
                 $profile = [
-                    'id' => $user['id'],
-                    'nickName' => $user['nickname'], // 直接使用数据库中的nickname，不使用默认值
-                    'avatarUrl' => $user['avatar_url'],
-                    'gender' => $user['gender'],
-                    'phoneNumber' => $user['phone_number'] ?? '',
-                    'department' => $user['department'] ?? '***',
-                    'role' => $user['role'] ?? '学生',
-                    'groupName' => $user['group_name'] ?? '***',
-                    'isVerified' => (bool)$user['is_verified']
+                    'id' => $user['id'] ?? 0,
+                    'nickName' => !empty($user['nickname']) ? $user['nickname'] : '',
+                    'avatarUrl' => !empty($user['avatar_url']) ? $user['avatar_url'] : '',
+                    'gender' => isset($user['gender']) ? (int)$user['gender'] : 0,
+                    'phoneNumber' => !empty($user['phone_number']) ? $user['phone_number'] : '',
+                    'department' => !empty($user['department']) ? $user['department'] : '***',
+                    'role' => !empty($user['role']) ? $user['role'] : '学生',
+                    'groupName' => !empty($user['group_name']) ? $user['group_name'] : '***',
+                    'isVerified' => isset($user['is_verified']) ? (bool)$user['is_verified'] : true
                 ];
                 
                 error_log("返回给前端的用户资料: " . json_encode($profile));
@@ -312,6 +312,12 @@ class UserManager
             }
         } catch (PDOException $e) {
             error_log("获取用户资料失败: " . $e->getMessage());
+            error_log("SQL状态: " . $e->getCode());
+            error_log("错误位置: " . $e->getFile() . ':' . $e->getLine());
+            return false;
+        } catch (Exception $e) {
+            error_log("获取用户资料通用异常: " . $e->getMessage());
+            error_log("错误位置: " . $e->getFile() . ':' . $e->getLine());
             return false;
         }
     }

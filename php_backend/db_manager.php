@@ -20,7 +20,10 @@ class DBManager
         // 确保database目录存在
         $dir = dirname($this->sqlite_path);
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            mkdir($dir, 0777, true); // 修改为0777权限以确保写入权限
+        } else {
+            // 如果目录已存在，确保有正确的权限
+            chmod($dir, 0777);
         }
     }
     
@@ -48,24 +51,37 @@ class DBManager
             
             if (!is_dir($dir)) {
                 error_log("数据库目录不存在，尝试创建: {$dir}");
-                if (!mkdir($dir, 0755, true)) {
+                if (!mkdir($dir, 0777, true)) { // 修改为0777权限
                     error_log("无法创建数据库目录: {$dir}");
                     throw new Exception("无法创建数据库目录: {$dir}");
                 }
+                chmod($dir, 0777); // 确保目录有足够权限
                 error_log("成功创建数据库目录: {$dir}");
+            } else {
+                // 确保目录有正确的权限
+                chmod($dir, 0777);
+                error_log("已更新数据库目录权限: {$dir}");
             }
             
             // 检查目录权限
             if (!is_writable($dir)) {
                 error_log("数据库目录没有写入权限: {$dir}");
-                throw new Exception("数据库目录没有写入权限: {$dir}");
+                // 尝试修复权限
+                chmod($dir, 0777);
+                if (!is_writable($dir)) {
+                    throw new Exception("数据库目录没有写入权限，且无法修复: {$dir}");
+                }
             }
             
             // 检查数据库文件是否存在，如果存在检查权限
             if (file_exists($this->sqlite_path)) {
                 if (!is_writable($this->sqlite_path)) {
                     error_log("数据库文件存在但没有写入权限: {$this->sqlite_path}");
-                    throw new Exception("数据库文件没有写入权限");
+                    // 尝试修复文件权限
+                    chmod($this->sqlite_path, 0666);
+                    if (!is_writable($this->sqlite_path)) {
+                        throw new Exception("数据库文件没有写入权限，且无法修复");
+                    }
                 }
                 error_log("数据库文件存在并有写入权限");
             } else {
@@ -75,7 +91,7 @@ class DBManager
                     error_log("无法创建数据库文件: {$this->sqlite_path}");
                     throw new Exception("无法创建数据库文件");
                 }
-                chmod($this->sqlite_path, 0644);
+                chmod($this->sqlite_path, 0666); // 修改为0666权限
                 error_log("成功创建数据库文件");
             }
             

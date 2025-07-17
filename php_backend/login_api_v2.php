@@ -194,8 +194,46 @@ if (!$existingUser) {
 $profile = $userManager->getProfile($openid);
 if (!$profile) {
     $api->logError("获取用户资料失败: " . $openid);
-    $api->sendError('获取用户资料失败', APIManager::API_ERROR, APIManager::HTTP_INTERNAL_SERVER_ERROR);
-    exit;
+    
+    // 尝试再次查询用户是否存在
+    $existingUser = $userManager->findByOpenid($openid);
+    if (!$existingUser) {
+        $api->logError("用户不存在，可能是创建失败: " . $openid);
+        
+        // 尝试再次创建用户
+        $api->log("尝试再次创建用户: " . $openid);
+        if ($userManager->create($userData)) {
+            $api->log("再次创建用户成功，尝试获取资料");
+            $profile = $userManager->getProfile($openid);
+            
+            if (!$profile) {
+                $api->logError("再次获取用户资料失败");
+                $api->sendError('获取用户资料失败，请重试', APIManager::API_ERROR, APIManager::HTTP_INTERNAL_SERVER_ERROR);
+                exit;
+            }
+        } else {
+            $api->logError("再次创建用户失败");
+            $api->sendError('创建用户失败，请重试', APIManager::API_ERROR_DB, APIManager::HTTP_INTERNAL_SERVER_ERROR);
+            exit;
+        }
+    } else {
+        $api->logError("用户存在但获取资料失败，详细数据: " . json_encode($existingUser));
+        
+        // 尝试构建一个基本的用户资料
+        $profile = [
+            'id' => $existingUser['id'],
+            'nickName' => $existingUser['nickname'] ?? '',
+            'avatarUrl' => $existingUser['avatar_url'] ?? '',
+            'gender' => (int)($existingUser['gender'] ?? 0),
+            'phoneNumber' => $existingUser['phone_number'] ?? '',
+            'department' => $existingUser['department'] ?? '***',
+            'role' => $existingUser['role'] ?? '学生',
+            'groupName' => $existingUser['group_name'] ?? '***',
+            'isVerified' => (bool)($existingUser['is_verified'] ?? true)
+        ];
+        
+        $api->log("手动构建的用户资料: " . json_encode($profile));
+    }
 }
 
 $api->log("获取用户资料成功: " . json_encode($profile));
