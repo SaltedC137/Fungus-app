@@ -169,8 +169,8 @@ class NotificationService {
           // 保存到本地
           this.saveLocalNotifications();
           
-          // 通知所有监听者
-          this.notifyListeners();
+          // 通知所有监听者，传递登录状态
+          this.notifyListeners(data.isLoggedIn);
           
           return {
             notifications: this.notifications,
@@ -260,8 +260,11 @@ class NotificationService {
     // 保存到本地
     this.saveLocalNotifications();
     
+    // 获取当前登录状态
+    const isLoggedIn = !!wx.getStorageSync('token');
+    
     // 通知所有监听者
-    this.notifyListeners();
+    this.notifyListeners(isLoggedIn);
     
     // 向后端发送标记请求
     notificationBackend.markAsRead(id)
@@ -273,7 +276,7 @@ class NotificationService {
         // 如果失败，恢复未读状态
         this.notifications[index].isRead = false;
         this.saveLocalNotifications();
-        this.notifyListeners();
+        this.notifyListeners(isLoggedIn);
       });
     
     return true;
@@ -304,8 +307,11 @@ class NotificationService {
       // 保存到本地
       this.saveLocalNotifications();
       
+      // 获取当前登录状态
+      const isLoggedIn = !!wx.getStorageSync('token');
+      
       // 通知所有监听者
-      this.notifyListeners();
+      this.notifyListeners(isLoggedIn);
       
       // 向后端发送标记所有已读请求
       notificationBackend.markAllAsRead()
@@ -412,14 +418,16 @@ class NotificationService {
   
   /**
    * 通知所有监听者
+   * @param {boolean} isLoggedIn 用户是否已登录
    */
-  notifyListeners() {
+  notifyListeners(isLoggedIn) {
     const data = {
       notifications: this.notifications,
-      unreadCount: this.getUnreadCount()
+      unreadCount: this.getUnreadCount(),
+      isLoggedIn: isLoggedIn !== undefined ? isLoggedIn : !!wx.getStorageSync('token')
     };
     
-    console.log('通知所有监听者，监听器数量:', this.callbacks.length, '未读数量:', data.unreadCount);
+    console.log('通知所有监听者，监听器数量:', this.callbacks.length, '未读数量:', data.unreadCount, '登录状态:', data.isLoggedIn);
     
     this.callbacks.forEach(callback => {
       try {

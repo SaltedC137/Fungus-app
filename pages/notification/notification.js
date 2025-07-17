@@ -64,6 +64,14 @@ Page({
     
     // 重新加载通知数据
     this.loadNotifications();
+    
+    // 登录状态变化时，立即获取最新通知
+    if (state.isLoggedIn) {
+      notificationService.fetchNotifications();
+    }
+    
+    // 如果登录状态发生变化，重新设置过滤列表
+    this.setFilteredList();
   },
   
   // 处理通知更新

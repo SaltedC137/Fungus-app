@@ -13,6 +13,9 @@ App({
 
     // 初始化登录管理器
     loginManager.init();
+    
+    // 初始化登录状态
+    this.globalData.isLoggedIn = !!wx.getStorageSync('token');
 
     // 登录
     wx.login({
@@ -51,6 +54,9 @@ App({
     // 初始化通知服务
     notificationService.init();
     
+    // 立即获取最新通知
+    notificationService.fetchNotifications();
+    
     // 监听通知更新，更新全局未读数
     notificationService.addListener(this.handleNotificationUpdate.bind(this));
     
@@ -66,6 +72,11 @@ App({
     this.globalData.isLoggedIn = state.isLoggedIn;
     this.globalData.userInfo = state.userInfo;
     this.globalData.needPhoneBind = state.needPhoneBind;
+    
+    // 登录状态变化时，重新获取通知
+    if (state.isLoggedIn) {
+      notificationService.fetchNotifications();
+    }
   },
   
   // 处理通知更新

@@ -34,6 +34,7 @@ class NotificationManager {
             
             // 获取系统通知和针对该用户的通知
             if ($notification['type'] === self::TYPE_SYSTEM || 
+                $notification['type'] === self::TYPE_ACTIVITY || // 登录用户可以看到所有待办通知
                 (isset($notification['target_users']) && in_array($openid, $notification['target_users']))) {
                 
                 // 检查用户已读状态
