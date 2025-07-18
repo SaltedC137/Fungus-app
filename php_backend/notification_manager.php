@@ -86,6 +86,46 @@ class NotificationManager {
     }
     
     /**
+     * 删除所有通知
+     * @return bool 是否删除成功
+     */
+    public static function deleteAllNotifications() {
+        // 创建空数组并保存
+        return self::saveAllNotifications([]);
+    }
+    
+    /**
+     * 删除通知
+     * @param string $notificationId 通知ID
+     * @return bool 是否删除成功
+     */
+    public static function deleteNotification($notificationId) {
+        if (empty($notificationId)) {
+            return false;
+        }
+        
+        $allNotifications = self::getAllNotifications();
+        $found = false;
+        
+        // 过滤掉要删除的通知
+        $filteredNotifications = array_filter($allNotifications, function($notification) use ($notificationId, &$found) {
+            if ($notification['id'] === $notificationId) {
+                $found = true;
+                return false;
+            }
+            return true;
+        });
+        
+        // 如果没有找到通知，返回失败
+        if (!$found) {
+            return false;
+        }
+        
+        // 保存更新后的通知列表
+        return self::saveAllNotifications(array_values($filteredNotifications));
+    }
+    
+    /**
      * 标记通知为已读
      * @param string $openid 用户openid
      * @param string $notificationId 通知ID
@@ -202,15 +242,32 @@ class NotificationManager {
             return [];
         }
         
+        // 检查文件是否为空
         if (filesize(NOTIFICATION_FILE) === 0) {
             file_put_contents(NOTIFICATION_FILE, '[]');
             return [];
         }
         
-        $content = file_get_contents(NOTIFICATION_FILE);
+        // 使用文件锁读取内容
+        $notifications = [];
+        $fp = fopen(NOTIFICATION_FILE, 'r');
+        if ($fp) {
+            if (flock($fp, LOCK_SH)) {
+                $content = '';
+                while (!feof($fp)) {
+                    $content .= fread($fp, 8192);
+                }
+                flock($fp, LOCK_UN);
+                
         $notifications = json_decode($content, true);
+                if (!is_array($notifications)) {
+                    $notifications = [];
+                }
+            }
+            fclose($fp);
+        }
         
-        return is_array($notifications) ? $notifications : [];
+        return $notifications;
     }
     
     /**
@@ -219,8 +276,29 @@ class NotificationManager {
      * @return bool 是否保存成功
      */
     private static function saveAllNotifications($notifications) {
-        $content = json_encode($notifications, JSON_PRETTY_PRINT);
-        return file_put_contents(NOTIFICATION_FILE, $content) !== false;
+        // 确保目录存在
+        $dir = dirname(NOTIFICATION_FILE);
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        
+        // 使用 JSON_PRETTY_PRINT 使文件更易读
+        $content = json_encode($notifications, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        
+        // 使用文件锁确保多个进程不会同时写入
+        $fp = fopen(NOTIFICATION_FILE, 'w');
+        if ($fp) {
+            if (flock($fp, LOCK_EX)) {
+                $result = fwrite($fp, $content);
+                fflush($fp);
+                flock($fp, LOCK_UN);
+                fclose($fp);
+                return $result !== false;
+            }
+            fclose($fp);
+            return false;
+        }
+        return false;
     }
 }
 ?> 

@@ -4,31 +4,67 @@
  * 用于发送系统通知和待办通知
  */
 
+// 启动会话
+session_start();
+
 require_once 'config.php';
 require_once 'notification_manager.php';
+
+// 删除所有通知
+if (isset($_GET['delete_all']) && $_GET['delete_all'] === 'confirm') {
+    $result = NotificationManager::deleteAllNotifications();
+    if ($result) {
+        $_SESSION['notification_message'] = '<div class="alert alert-success">所有通知已成功删除</div>';
+    } else {
+        $_SESSION['notification_message'] = '<div class="alert alert-danger">删除所有通知失败</div>';
+    }
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// 删除通知
+if (isset($_GET['delete_id'])) {
+    $deleteId = $_GET['delete_id'];
+    $result = NotificationManager::deleteNotification($deleteId);
+    if ($result) {
+        $_SESSION['notification_message'] = '<div class="alert alert-success">通知已成功删除</div>';
+    } else {
+        $_SESSION['notification_message'] = '<div class="alert alert-danger">删除通知失败</div>';
+    }
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
 
 // 添加测试通知
 if (isset($_GET['add_test'])) {
     $type = $_GET['add_test'];
     if ($type === 'system') {
-        NotificationManager::createNotification(
+        $result = NotificationManager::createNotification(
             'system',
             '系统测试通知',
             '这是一条系统测试通知，用于测试通知功能是否正常工作。',
             []
         );
-        echo json_encode(['success' => true, 'message' => '已添加系统测试通知']);
-        exit;
+        if ($result) {
+            $_SESSION['notification_message'] = '<div class="alert alert-success">已添加系统测试通知</div>';
+        } else {
+            $_SESSION['notification_message'] = '<div class="alert alert-danger">添加系统测试通知失败</div>';
+        }
     } elseif ($type === 'activity') {
-        NotificationManager::createNotification(
+        $result = NotificationManager::createNotification(
             'activity',
             '待办测试通知',
             '这是一条待办测试通知，用于测试待办功能是否正常工作。',
             []
         );
-        echo json_encode(['success' => true, 'message' => '已添加待办测试通知']);
-        exit;
+        if ($result) {
+            $_SESSION['notification_message'] = '<div class="alert alert-success">已添加待办测试通知</div>';
+        } else {
+            $_SESSION['notification_message'] = '<div class="alert alert-danger">添加待办测试通知失败</div>';
+        }
     }
+    header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
 }
 
 // 处理表单提交
@@ -52,11 +88,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = NotificationManager::createNotification($type, $title, $content, $targetUsers);
         
         if ($result) {
-            $message = '<div class="alert alert-success">通知发送成功</div>';
+            // 使用会话存储消息，然后重定向
+            $_SESSION['notification_message'] = '<div class="alert alert-success">通知发送成功</div>';
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit;
         } else {
             $message = '<div class="alert alert-danger">通知发送失败</div>';
         }
     }
+}
+
+// 检查会话消息
+if (isset($_SESSION['notification_message'])) {
+    $message = $_SESSION['notification_message'];
+    unset($_SESSION['notification_message']);
 }
 
 // 获取所有通知
@@ -112,6 +157,7 @@ usort($allNotifications, function($a, $b) {
             margin-bottom: 15px;
             border-bottom: 1px solid #eee;
             padding-bottom: 15px;
+            position: relative;
         }
         .notification-time {
             color: #6c757d;
@@ -122,6 +168,8 @@ usort($allNotifications, function($a, $b) {
         }
         .notification-content {
             margin-top: 5px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
         .target-users {
             font-size: 0.85rem;
@@ -130,6 +178,22 @@ usort($allNotifications, function($a, $b) {
         }
         .test-buttons {
             margin-bottom: 20px;
+        }
+        .delete-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #dc3545;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            color: #bb2d3b;
+        }
+        .action-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
@@ -140,7 +204,7 @@ usort($allNotifications, function($a, $b) {
             <p class="text-muted">发送系统通知和待办通知</p>
         </div>
         
-        <?php echo $message; ?>
+        <?php echo $message ?? ''; ?>
         
         <div class="test-buttons">
             <h3>快速测试</h3>
@@ -181,16 +245,24 @@ usort($allNotifications, function($a, $b) {
             
             <div class="col-md-6">
                 <div class="notification-list">
+                    <div class="action-buttons">
                     <h2>最近通知</h2>
+                        <a href="?delete_all=confirm" class="btn btn-danger" onclick="return confirm('确定要删除所有通知吗？此操作不可恢复！');">
+                            <i class="bi bi-trash"></i> 删除所有通知
+                        </a>
+                    </div>
                     <?php if (count($allNotifications) > 0): ?>
                         <?php foreach(array_slice($allNotifications, 0, 10) as $notification): ?>
                             <div class="notification-item">
+                                <a href="?delete_id=<?php echo $notification['id']; ?>" class="delete-btn" onclick="return confirm('确定要删除这条通知吗？');">
+                                    <i class="bi bi-trash"></i> 删除
+                                </a>
                                 <span class="badge <?php echo $notification['type'] === 'system' ? 'system-badge' : 'activity-badge'; ?>">
                                     <?php echo $notification['type'] === 'system' ? '系统' : '待办'; ?>
                                 </span>
                                 <span class="notification-time"><?php echo $notification['time']; ?></span>
                                 <div class="notification-title"><?php echo htmlspecialchars($notification['title']); ?></div>
-                                <div class="notification-content"><?php echo htmlspecialchars($notification['content']); ?></div>
+                                <div class="notification-content"><?php echo nl2br(htmlspecialchars($notification['content'])); ?></div>
                                 <?php if (!empty($notification['target_users'])): ?>
                                     <div class="target-users">
                                         发送给: <?php echo implode(', ', $notification['target_users']); ?>
@@ -209,5 +281,6 @@ usort($allNotifications, function($a, $b) {
     </div>
     
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 </body>
 </html> 

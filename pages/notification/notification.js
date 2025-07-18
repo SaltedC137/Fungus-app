@@ -11,7 +11,9 @@ Page({
     notificationList: [],
     filteredList: [],
     hasUnread: false, // 是否有未读通知
-    isLoggedIn: false // 是否已登录
+    isLoggedIn: false, // 是否已登录
+    showDetailPopup: false, // 是否显示详情弹窗
+    currentNotification: null // 当前查看的通知
   },
 
   onLoad: function (options) {
@@ -186,15 +188,30 @@ Page({
   // 查看通知详情
   viewDetail: function(e) {
     const id = e.currentTarget.dataset.id;
-    // 标记为已读
-    this.markAsRead({
-      currentTarget: {
-        dataset: { id: id }
-      }
-    });
-    // 跳转到详情页
-    wx.navigateTo({
-      url: `/pages/notification/detail?id=${id}`
+    
+    // 查找通知数据
+    const notification = this.data.notificationList.find(item => item.id === id);
+    
+    if (notification) {
+      // 标记为已读
+      this.markAsRead({
+        currentTarget: {
+          dataset: { id: id }
+        }
+      });
+      
+      // 显示详情弹窗
+      this.setData({
+        currentNotification: notification,
+        showDetailPopup: true
+      });
+    }
+  },
+  
+  // 关闭详情弹窗
+  closeDetailPopup: function() {
+    this.setData({
+      showDetailPopup: false
     });
   },
   

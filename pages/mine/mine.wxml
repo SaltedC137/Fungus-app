@@ -8,7 +8,7 @@
       <view class="user-info-wrapper">
         <block wx:if="{{!isLoggedIn}}">
           <view class="avatar-container">
-            <view class="avatar-placeholder"></view>
+            <view class="avatar-placeholder">?</view>
           </view>
           <view class="user-detail">
             <button class="login-btn" bindtap="getUserProfile" loading="{{loginBtnLoading}}">微信一键登录</button>
