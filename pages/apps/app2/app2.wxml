@@ -1,0 +1,18 @@
+<view class="container">
+  <xr-start
+    id="main-frame"
+    width="{{renderWidth}}"
+    height="{{renderHeight}}"
+    style="width:{{width}}px;height:{{height}}px;top:{{top}}px;left:{{left}}px;display:block;"
+  ></xr-start>
+  
+  <!-- 加载转圈动画 -->
+  <view class="loading-container" wx:if="{{!assetsLoaded}}" key="loading">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">模型加载中...</text>
+  </view>
+  
+  <view class="hint" wx:if="{{assetsLoaded}}" key="hint">
+    <text class="hint-text">拖动旋转，双指缩放</text>
+  </view>
+</view>

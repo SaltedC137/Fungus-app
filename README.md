@@ -64,7 +64,7 @@ notificationService.markAllAsRead();
 
 ### 后端管理
 
-1. 访问后端管理页面：`http://your-domain.com/php_backend/`
+1. 访问后端管理页面：`https://weapi.revoist.cn/php_backend/`
 2. 点击"通知管理"进入通知发送界面
 3. 选择通知类型（系统/待办）
 4. 填写通知标题和内容

@@ -8,7 +8,7 @@
     
     <!-- Logo -->
     <view class="logo-container">
-      <image class="logo-image" src="/images/mushroom.png" mode="aspectFit"></image>
+      <image class="logo-image" src="/images/logo.jpg" mode="aspectFit"></image>
     </view>
     
     <!-- 欢迎文本 -->

@@ -1,15 +1,25 @@
-<xr-scene>
-  <xr-light type="ambient" color="1 1 1" intensity="1" />
-  <xr-light type="directional" rotation="30 50 0" color="1 1 1" intensity="3" cast-shadow />
-
-  <xr-mesh
-  node-id="cube" cast-shadow
-  geometry="cube" uniforms="u_baseColorFactor:0.8 0.4 0.4 1"
-  />
-  <xr-mesh
-  position="0 -1 0" scale="4 1 4" receive-shadow
-  geometry="plane" uniforms="u_baseColorFactor:0.4 0.6 0.8 1"
-  />
-
-  <xr-camera clear-color="0.4 0.8 0.6 1" position="0 1 4" target="cube" camera-orbit-control/>
+<xr-scene bind:ready="handleReady">
+  <xr-assets bind:progress="handleAssetsProgress" bind:loaded="handleAssetsLoaded">
+    <xr-asset-load type="gltf" asset-id="gltf-item" src="https://weapi.revoist.cn/model/msuh.glb" />
+  </xr-assets>
+  
+  <xr-node>
+    <xr-node node-id="camera-target" position="0 0 0"></xr-node>
+    <xr-node node-id="setitem">
+      <xr-gltf model="gltf-item" scale="2 2 2" position="0 0 0"></xr-gltf>
+    </xr-node>
+    <xr-camera 
+      id="camera" 
+      node-id="camera" 
+      position="0 0 5" 
+      clear-color="0.925 0.925 0.925 1"
+      target="camera-target"
+      camera-orbit-control
+    ></xr-camera>
+  </xr-node>
+  
+  <xr-node node-id="lights">
+    <xr-light type="ambient" color="1 1 1" intensity="1" />
+    <xr-light type="directional" rotation="180 0 0" color="1 1 1" intensity="3" />
+  </xr-node>
 </xr-scene>

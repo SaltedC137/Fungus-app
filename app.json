@@ -6,7 +6,8 @@
     "pages/notification/notification",
     "pages/search/search",
     "pages/apps/app1/app1",
-    "pages/bind-info/bind-info"
+    "pages/bind-info/bind-info",
+    "pages/apps/app2/app2"
   ],
   "window": {
     "navigationBarTextStyle": "black",

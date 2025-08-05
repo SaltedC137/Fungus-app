@@ -8,8 +8,8 @@
      <swiper indicator-dots indicator-color="rgba(255,255,255,1)"
      indicator-active-color="#fff" circular autoplay interval="4000">
      <swiper-item><image src="/images/banner_1.png"></image></swiper-item>
-     <swiper-item><image src="/images/banner_2.png"></image></swiper-item>
-     <swiper-item><image src="/images/banner_3.png"></image></swiper-item>
+     <swiper-item><image src="/images/banner_2.jpg"></image></swiper-item>
+     <swiper-item><image src="/images/banner_3.jpg"></image></swiper-item>
      </swiper>
   </view>
 

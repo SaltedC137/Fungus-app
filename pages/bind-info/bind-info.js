@@ -119,7 +119,7 @@ Page({
     
     // 调用API提交数据
     wx.request({
-      url: 'http://117.72.10.68/php_backend/login_api.php?action=bind_info&token=' + encodeURIComponent(token),
+      url: 'https://weapi.revoist.cn/php_backend/login_api.php?action=bind_info&token=' + encodeURIComponent(token),
       method: 'POST',
       header: {
         'Token': token, // 大写开头，与后端getallheaders()的格式匹配

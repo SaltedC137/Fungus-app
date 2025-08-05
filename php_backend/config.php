@@ -5,7 +5,7 @@
  */
 
 // 微信小程序配置
-define('WX_APPID', '***'); // 替换为您的AppID
+define('WX_APPID', 'wx7e2a8785d21e400e'); // 替换为您的AppID
 define('WX_SECRET', '***'); // 替换为您的AppSecret
 
 // 文件存储路径

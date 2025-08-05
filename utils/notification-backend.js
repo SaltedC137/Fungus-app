@@ -11,7 +11,7 @@ const NotificationType = {
 };
 
 // 基础URL - 使用完整URL，因为微信小程序不支持相对路径
-const BASE_URL = 'http://117.72.10.68/php_backend/';
+const BASE_URL = 'https://weapi.revoist.cn/php_backend/';
 
 // 格式化通知内容，处理长文本
 function formatNotificationContent(notification) {

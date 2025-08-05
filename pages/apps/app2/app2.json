@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "xr-start": "/components/xr-start/xr-start"
+  },
+  "disableScroll": true,
+  "renderer": "xr-frame"
+}

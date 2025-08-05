@@ -5,7 +5,7 @@
 const http = wx.request;
 
 // 基础API地址 - 修改为您的实际后端地址
-const BASE_URL = 'http://117.72.10.68/php_backend';
+const BASE_URL = 'https://weapi.revoist.cn/php_backend';
 
 /**
  * 微信登录，发送code到服务端
