@@ -1,6 +1,7 @@
 <xr-scene bind:ready="handleReady">
   <xr-assets bind:progress="handleAssetsProgress" bind:loaded="handleAssetsLoaded">
-    <xr-asset-load type="gltf" asset-id="gltf-item" src="https://weapi.revoist.cn/model/msuh.glb" />
+    <!-- <xr-asset-load type="gltf" asset-id="gltf-item" src="model/index1.glb" /> -->
+    <xr-asset-load type="gltf" asset-id="gltf-item" src="https://weapi.revoist.cn/model/index1.glb" />
   </xr-assets>
   
   <xr-node>
